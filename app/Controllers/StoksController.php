@@ -3,11 +3,11 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\models\Cabangs;
+use App\Models\Cabangs;
 use App\Models\Menus;
-use App\models\Mitras;
+use App\Models\Mitras;
 use App\Models\StokMutasis;
-use App\models\Stoks;
+use App\Models\Stoks;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class StoksController extends BaseController
