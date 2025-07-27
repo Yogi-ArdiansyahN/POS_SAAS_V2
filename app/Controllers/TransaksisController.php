@@ -31,6 +31,13 @@ class TransaksisController extends BaseController
         $mitras = $this->mitras->where('id', session()->get('users')['mitras_id'])->first();
         $cabangs = $this->cabangs->where('mitras_id', $mitras['id'])->first();
         $diskons = $this->diskons->where('mitras_id', $mitras['id'])->where('is_active', 1)->where('end_date >=', date('Y-m-d'))->get()->getResultArray();
+
+        // validasi cabang mitra
+        if (empty($cabangs)) {
+            session()->setFlashdata('errors', 'Mitra tidak memiliki cabang.');
+            return redirect()->to(base_url() . 'mitra');
+        }
+
         $menus_stok = $this->menus->getMenuStoks($mitras['id'], $cabangs['id'], date('Y-m-d'));
 
         if ($menus_stok == null) {
