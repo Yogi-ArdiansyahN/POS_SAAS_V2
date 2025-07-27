@@ -115,6 +115,9 @@
                                         <button name="daftar" class="btn btn-primary btn-lg btn-block">
                                             Daftar
                                         </button>
+                                        <div class="mx-auto d-flex justify-content-center align-items-center font-weight-bold mt-3">
+                                            <a href="<?= base_url() ?>">Back to Login</a>
+                                        </div>
                                     </div>
                                     <!-- </div> -->
                                 </form>
