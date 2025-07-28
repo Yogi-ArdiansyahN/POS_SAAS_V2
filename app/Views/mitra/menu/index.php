@@ -250,6 +250,11 @@
                         id: id,
                     },
                     success: function(response) {
+                        if (response.status === 'errors') {
+                            Swal.fire("Gagal menghapus menu!", response.message, "error");
+                            return;
+                        }
+
                         Swal.fire("Menu Terhapus!", "", "success");
                         $('#datasTable').DataTable().ajax.reload();
                     },

@@ -5,19 +5,21 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\Menus;
 use App\Models\Mitras;
+use App\Models\Stoks;
 use App\Models\Users;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class MenusController extends BaseController
 {
 
-    protected $users, $mitras, $menus;
+    protected $users, $mitras, $menus, $stoks;
 
     public function __construct()
     {
         $this->users = new Users();
         $this->mitras = new Mitras();
         $this->menus = new Menus();
+        $this->stoks = new Stoks();
     }
 
     public function index()
@@ -339,23 +341,27 @@ class MenusController extends BaseController
 
     public function delete()
     {
+        date_default_timezone_set('Asia/Jakarta');
+
         $id = $this->request->getVar('id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
         $mitras = $this->mitras->where('users_id', session()->get('users')['id'])->first();
         $menu = $this->menus->find($id);
 
+        //validasi menu, apabila ada stok menu tidak bisa dihapus
+        if ($this->stoks->where('menus_id', $id)->where('DATE(created_at)', date('Y-m-d'))->first()) {
+            return $this->response->setJSON(['status' => 'errors', 'message' => 'Menu tidak bisa dihapus karena masih memiliki stok.']);
+        }
+
         if (!$menu || $menu['mitras_id'] != $mitras['id']) {
-            session()->setFlashdata('error', 'Menu tidak ditemukan atau tidak memiliki akses.');
-            return redirect()->to('/mitra/menu');
+            return $this->response->setJSON(['status' => 'errors', 'message' => 'Menu tidak ditemukan atau tidak memiliki akses.']);
         }
 
         if ($this->menus->set(['is_active' => 0])->where('id', $id)->update()) {
-            session()->setFlashdata('success', 'Menu berhasil dihapus.');
+            return $this->response->setJSON(['status' => 'success', 'message' => 'Menu berhasil dihapus.']);
         } else {
-            session()->setFlashdata('errors', 'Gagal menghapus menu.');
+            return $this->response->setJSON(['status' => 'errors', 'message' => 'Gagal menghapus menu.']);
         }
-
-        return redirect()->to('/mitra/menu');
     }
 
     function validation_name($mitras_id, $name, $id = null)
