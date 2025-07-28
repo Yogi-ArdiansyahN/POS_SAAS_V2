@@ -80,6 +80,8 @@ $routes->group('mitra', ['filter' => 'IsLoggedIn'], static function ($routes) {
             $routes->get('detail', 'StoksController::detail');
             $routes->match(['GET', 'POST'], 'mutasi', 'StoksController::mutasi');
             $routes->get('tambah', 'StoksController::tambah');
+
+            $routes->get('riwayat_mutasi', 'StoksController::riwayat_mutasi');
         });
 
         $routes->group('transaksi', static function ($routes) {
@@ -114,6 +116,7 @@ $routes->group('mitra', ['filter' => 'IsLoggedIn'], static function ($routes) {
         $routes->get('getDataTableDiskon', 'DiskonsController::getDataTable');
         $routes->get('getDataTableStokMenuDashboard/(:any)', 'MitrasController::getDataTableStokMenuDashboard/$1');
         $routes->get('getDataTableTransaksiDashboard/(:any)', 'MitrasController::getDataTableTransaksiDashboard/$1');
+        $routes->get('getDataRiwayatMutasi/(:any)', 'StoksController::getDataRiwayatMutasi/$1');
     });
 });
 

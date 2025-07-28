@@ -51,7 +51,7 @@ class StokMutasis extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function create($data_stoks, $data_stok_mutasi, $data_stok_pindah = null, $cabang_id, $mitras_id, $pindah_cabang_id = null, $date)
+    public function create($data_stoks, $data_stok_mutasi, $data_stok_pindah = null, $mitras_id, $pindah_cabang_id = null, $date)
     {
         try {
             $this->db->transBegin();
@@ -88,7 +88,7 @@ class StokMutasis extends Model
                     $insert_pindah = $this->db->table('stoks')
                         ->where('id', $data['id'])
                         ->where('mitras_id', $mitras_id)
-                        ->where('cabangs_id', $pindah_cabang_id[$key])
+                        ->where('cabangs_id', $data['cabangs_id'])
                         ->where('menus_id', $data['menus_id'])
                         ->where('DATE(created_at)', $date)
                         ->set([
@@ -117,5 +117,126 @@ class StokMutasis extends Model
         }
 
         return $result;
+    }
+
+    public function getDataRiwayatMutasi($start, $length, $search, $mitras_id = null, $cabangs_id = null, $date = null)
+    {
+        $stok_mutasis = $this->db->table('stok_mutasis')
+            ->select('
+                stok_mutasis.quantity,
+                stok_mutasis.current_quantity_sebelum,
+                stok_mutasis.quantity_sebelum,
+                stok_mutasis.current_quantity_sesudah,
+                stok_mutasis.quantity_sesudah,
+                stok_mutasis.notes,
+                stok_mutasis.tipe_mutasi,
+                menus.name as menu_name,
+                cabangs.name as cabang_name,
+                stok_mutasis.created_at
+            ')
+            ->join('menus', 'menus.id = stok_mutasis.menus_id')
+            ->join('cabangs', 'cabangs.id = stok_mutasis.cabangs_id');
+
+        if ($mitras_id) {
+            $stok_mutasis->where('stok_mutasis.mitras_id', $mitras_id);
+        }
+
+        if ($cabangs_id) {
+            $stok_mutasis->where('stok_mutasis.cabangs_id', $cabangs_id);
+        }
+
+        if ($date) {
+            $stok_mutasis->where('DATE(stok_mutasis.created_at)', $date);
+        }
+
+        if (!empty($search)) {
+            $stok_mutasis->groupStart()
+                ->like('cabangs.name', $search)
+                ->orLike('stok_mutasis.tipe_mutasi', $search)
+                ->orLike('menus.name', $search)
+                ->groupEnd();
+        }
+
+        if ($length != 1) {
+            $stok_mutasis->limit($length, $start);
+        }
+
+        $stok_mutasis = $stok_mutasis->orderBy('stok_mutasis.created_at', 'DESC');
+
+        return $stok_mutasis->get()->getResultArray();
+    }
+
+    public function countAllgetDataRiwayatMutasi($mitras_id = null, $cabangs_id = null, $date = null)
+    {
+        $stok_mutasis = $this->db->table('stok_mutasis')
+            ->select('
+                stok_mutasis.quantity,
+                stok_mutasis.current_quantity_sebelum,
+                stok_mutasis.quantity_sebelum,
+                stok_mutasis.current_quantity_sesudah,
+                stok_mutasis.quantity_sesudah ,
+                stok_mutasis.notes,
+                stok_mutasis.tipe_mutasi,
+                menus.name,
+                cabangs.name,
+                stok_mutasis.created_at
+
+            ')
+            ->join('menus', 'menus.id = stok_mutasis.menus_id')
+            ->join('cabangs', 'cabangs.id = stok_mutasis.cabangs_id')
+            ->where('stok_mutasis.mitras_id', $mitras_id);
+
+        if ($cabangs_id) {
+            $stok_mutasis->where('stok_mutasis.cabangs_id', $cabangs_id);
+        }
+
+        if ($date) {
+            $stok_mutasis->where('DATE(stok_mutasis.created_at)', $date);
+        }
+
+        $stok_mutasis = $stok_mutasis->countAllResults();
+
+        return $stok_mutasis;
+    }
+
+    public function countFilteredgetDataRiwayatMutasi($search, $mitras_id = null, $cabangs_id = null, $date = null)
+    {
+        $stok_mutasis = $this->db->table('stok_mutasis')
+            ->select('
+                stok_mutasis.quantity,
+                stok_mutasis.current_quantity_sebelum,
+                stok_mutasis.quantity_sebelum,
+                stok_mutasis.current_quantity_sesudah,
+                stok_mutasis.quantity_sesudah ,
+                stok_mutasis.notes,
+                stok_mutasis.tipe_mutasi,
+                menus.name,
+                cabangs.name,
+                stok_mutasis.created_at
+            ')
+            ->join('menus', 'menus.id = stok_mutasis.menus_id')
+            ->join('cabangs', 'cabangs.id = stok_mutasis.cabangs_id');
+
+        if ($mitras_id) {
+            $stok_mutasis->where('stok_mutasis.mitras_id', $mitras_id);
+        }
+
+        if ($cabangs_id) {
+            $stok_mutasis->where('stok_mutasis.cabangs_id', $cabangs_id);
+        }
+
+        if ($date) {
+            $stok_mutasis->where('DATE(stok_mutasis.created_at)', $date);
+        }
+
+        if (!empty($search)) {
+            $stok_mutasis->groupStart()
+                ->like('cabangs.name', $search)
+                ->orLike('stok_mutasis.tipe_mutasi', $search)
+                ->orLike('menus.name', $search)
+                ->groupEnd();
+        }
+
+        return $stok_mutasis->countAllResults();
     }
 }

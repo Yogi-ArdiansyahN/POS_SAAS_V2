@@ -63,6 +63,65 @@
             </div>
         <?php endforeach ?>
     </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>Riwayat Mutasi</h4>
+                    <div class="card-header-action dropdown">
+                        <a href="#" data-toggle="dropdown" class="btn btn-danger dropdown-toggle" id="labelCabang">Cabang</a>
+                        <ul class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                            <li class="dropdown-title">Pilih Cabang</li>
+                            <?php foreach ($cabangs as $data) : ?>
+                                <li>
+                                    <a
+                                        class="dropdown-item dropdown-item-cabang"
+                                        id="pilih-cabang-<?= $data['id'] ?>"
+                                        href="javascript:void(0)"
+                                        onclick="searchStokMenuByCabang('<?= $data['id'] ?>', '<?= $data['cabang_name'] ?>')">
+                                        <?= $data['cabang_name'] ?>
+                                    </a>
+                                </li>
+                            <?php endforeach ?>
+                            <li>
+                                <a
+                                    class="dropdown-item dropdown-item-cabang"
+                                    id="pilih-cabang-all"
+                                    href="javascript:void(0)"
+                                    onclick="searchStokMenuByCabang('all', 'All')">
+                                    All
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive px-3">
+                        <table class="table table-striped" id="datasRiwayatMutasi">
+                            <thead>
+                                <tr>
+                                    <th class="text-center align-middle">No</th>
+                                    <th class="text-center align-middle">Tipe Mutasi</th>
+                                    <th class="text-center align-middle">Menu</th>
+                                    <th class="text-center align-middle">Cabang</th>
+                                    <th class="text-center align-middle">Quantity <br> <sup> Mutasi </sup> </th>
+                                    <th class="text-center align-middle">Stok Awal <br> <sup> (Sebelum) </sup> </th>
+                                    <th class="text-center align-middle">Stok Saat Ini <br> <sup> (Sebelum) </sup> </th>
+                                    <th class="text-center align-middle">Stok Awal <br> <sup> (Sesudah) </sup> </th>
+                                    <th class="text-center align-middle">Stok Saat Ini <br> <sup> (Sesudah)</sup> </th>
+                                    <th class="text-center align-middle">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="BodyDatasTableStokMenu">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Edit -->
@@ -196,6 +255,82 @@
                 console.log('Error');
             }
         });
+    }
+
+    // Table Riwayat Mutasi
+    let tableRiwayatMutasi;
+    $(document).ready(function() {
+        tableRiwayatMutasi = $('#datasRiwayatMutasi').DataTable({
+            lengthMenu: [
+                [10, 30, 50, 1],
+                [10, 30, 50, "All"]
+            ],
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '<?= base_url() ?>' + "mitra/ajax/getDataRiwayatMutasi/all",
+                type: "get",
+                dataType: "json",
+                data: function(d) {
+                    d.search.value = $('input[type="search"]').val();
+                },
+                dataSrc: 'data'
+            },
+            columnDefs: [{
+                targets: '_all', // semua kolom
+                className: 'text-center align-middle'
+            }],
+            columns: [{
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return meta.row + 1; // Menggunakan nomor baris + 1
+                    }
+                },
+                {
+                    data: "tipe_mutasi"
+                },
+                {
+                    data: "menu_name"
+                },
+                {
+                    data: "cabang_name"
+                },
+                {
+                    data: "quantity"
+                },
+                {
+                    data: "quantity_sebelum",
+                },
+                {
+                    data: "current_quantity_sebelum",
+                },
+                {
+                    data: "quantity_sesudah",
+                },
+                {
+                    data: "current_quantity_sesudah",
+                },
+                {
+                    data: "notes",
+                },
+            ]
+        });
+    });
+
+    function searchStokMenuByCabang(id, cabangName) {
+        const newUrl = '<?= base_url() ?>' + "mitra/ajax/getDataRiwayatMutasi/" + id;
+
+        // Hapus semua class active dari semua item cabang
+        $('.dropdown-item-cabang').removeClass('active');
+
+        // Tambahkan class active pada cabang yang diklik
+        $('#pilih-cabang-' + id).addClass('active');
+
+        // Ubah label pada tombol dropdown
+        $('#labelCabang').text("Cabang: " + cabangName);
+
+        // Update DataTables
+        tableRiwayatMutasi.ajax.url(newUrl).load();
     }
 </script>
 

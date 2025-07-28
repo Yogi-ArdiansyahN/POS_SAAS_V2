@@ -13,7 +13,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 class StoksController extends BaseController
 {
 
-    protected $stoks, $mitras, $cabangs, $menus, $stokmutasis;
+    protected $stoks, $mitras, $cabangs, $menus, $stok_mutasis;
 
     public function __construct()
     {
@@ -21,7 +21,7 @@ class StoksController extends BaseController
         $this->mitras = new Mitras();
         $this->cabangs = new Cabangs();
         $this->menus = new Menus();
-        $this->stokmutasis = new StokMutasis();
+        $this->stok_mutasis = new StokMutasis();
     }
 
     public function index()
@@ -157,14 +157,15 @@ class StoksController extends BaseController
 
             // id cabang tujuan perpindahan stok
             $pindah_cabang_id = null;
+            $pindah_cabang_name = [];
             // tujuan stok cabang pindah *kekurangan masih harus di optimalisasi perihal perpindahan
             $stok_cabang_pindah = [];
             if (isset($_POST['perpindahan_ke'])) {
                 $pindah_cabang_id = $this->request->getPost('perpindahan_ke', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                $cabangs = $this->cabangs->getCabangs($mitras['id'], null, null);
 
                 foreach ($pindah_cabang_id as $data) {
                     $data_stok_cabang_pindah = $this->stoks->getStoks($mitras['id'], $data, date('Y-m-d'), null);
-                    // $stok_cabang_pindah[][$data] = $data_stok_cabang_pindah;
 
                     foreach ($data_stok_cabang_pindah as $datas) {
                         $stok_cabang_pindah[] = [
@@ -177,6 +178,20 @@ class StoksController extends BaseController
                             'cabang_name' => $datas['cabang_name']
                         ];
                     }
+
+                    // mendapatkan nama cabang tujuan
+                    foreach ($cabangs as $key => $cabang) {
+                        if ($cabang['id'] == $data) {
+                            $pindah_cabang_name[] = [
+                                'name' => $cabang['cabang_name'],
+                            ];
+                        }
+                    }
+                }
+
+                // menambahkan nama menu pada pindah_cabang_name
+                foreach ($menus as $key => $datas) {
+                    $pindah_cabang_name[$key]['menus_id'] = $datas;
                 }
             }
 
@@ -203,8 +218,6 @@ class StoksController extends BaseController
                     ];
                 }
             }
-
-            // dd($menus_quantities, $stoks, $menus);
 
             //validasi quantities stok dengan current_quantity
             $stoks_menus_id = array_column($stoks, 'menus_id');
@@ -263,7 +276,7 @@ class StoksController extends BaseController
                                     'menus_id' => $data['menus_id'],
                                     'cabangs_id' => $cabang_id,
                                     'mitras_id' => $mitras['id'],
-                                    'tipe_mutasi' => 'penambahan',
+                                    'tipe_mutasi' => 'Penambahan',
                                     'quantity' => $data['quantity'],
                                     'current_quantity_sebelum' => intval($stok['current_quantity']),
                                     'quantity_sebelum' => intval($stok['quantity']),
@@ -290,13 +303,13 @@ class StoksController extends BaseController
                                     'menus_id' => $data['menus_id'],
                                     'cabangs_id' => $cabang_id,
                                     'mitras_id' => $mitras['id'],
-                                    'tipe_mutasi' => 'penambahan',
+                                    'tipe_mutasi' => 'Pengurangan',
                                     'quantity' => $data['quantity'],
                                     'current_quantity_sebelum' => intval($stok['current_quantity']),
                                     'quantity_sebelum' => intval($stok['quantity']),
                                     'current_quantity_sesudah' => intval($stok['current_quantity']) - intval($data['quantity']),
                                     'quantity_sesudah' => intval($stok['quantity']) - intval($data['quantity']),
-                                    'notes' => 'Penambahan stok ' . $stok['cabang_name'] . ' sebesar ' . $data['quantity'] . ' pada waktu : ' . date('Y-m-d h:i:s')
+                                    'notes' => 'Pengurangan stok ' . $stok['cabang_name'] . ' sebesar ' . $data['quantity'] . ' pada waktu : ' . date('Y-m-d h:i:s')
                                 ];
                                 break; // keluar loop setelah ketemu
 
@@ -325,29 +338,40 @@ class StoksController extends BaseController
                                     'quantity_sebelum' => intval($stok['quantity']),
                                     'current_quantity_sesudah' => intval($stok['current_quantity']) - intval($data['quantity']),
                                     'quantity_sesudah' => intval($stok['quantity']) - intval($data['quantity']),
-                                    'notes' => 'Perpindahan stok ' . $stok['cabang_name'] . ' sebesar ' . $data['quantity'] . '  ke cabang' . ' pada waktu : ' . date('Y-m-d h:i:s')
+                                    'notes' => 'Perpindahan stok ' . $stok['cabang_name'] . ' sebesar ' . $data['quantity'] . '  ke cabang '
                                 ];
-                                break; // keluar loop setelah ketemu
 
+                                break; // keluar loop setelah ketemu
                             }
                         }
 
                         foreach ($stok_cabang_pindah as $datas) {
                             if ($datas['menus_id'] == $data['menus_id']) {
                                 $data_stok_pindah[] = [
+                                    'cabangs_id' => $datas['cabangs_id'],
                                     'id' => $datas['id'],
                                     'menus_id' => $datas['menus_id'],
                                     'quantity' =>  intval($datas['quantity']) + intval($data['quantity']),
                                     'current_quantity' => intval($datas['current_quantity']) + intval($data['quantity']),
                                 ];
-                                break; // keluar loop setelah ketemu
+                            }
+                        }
+
+                        // update notes pada data_stok_mutasis
+                        foreach ($data_stok_mutasis as &$datasss) {
+                            foreach ($pindah_cabang_name as $datass) {
+                                if ($datasss['menus_id'] == $datass['menus_id']) {
+                                    $datasss['notes'] .= $datass['name'] . ' pada waktu : ' . date('Y-m-d h:i:s');
+                                }
                             }
                         }
                     }
                 }
             }
 
-            $create_mutasi = $this->stokmutasis->create($data_stoks, $data_stok_mutasis, $data_stok_pindah, $cabang_id, $mitras['id'], $pindah_cabang_id, date('Y-m-d'));
+            // dd($pindah_cabang_name, $pindah_cabang_id, $pindah_cabang_id, $data_stok_mutasis, $data_stok_pindah);
+
+            $create_mutasi = $this->stok_mutasis->create($data_stoks, $data_stok_mutasis, $data_stok_pindah, $mitras['id'], $pindah_cabang_id, date('Y-m-d'));
 
             session()->setFlashdata($create_mutasi['status'], $create_mutasi['message']);
             return redirect()->to(base_url() . 'mitra/stok');
@@ -396,5 +420,36 @@ class StoksController extends BaseController
 
             return view('mitra/stok/mutasi', $data);
         }
+    }
+
+    public function getDataRiwayatMutasi($cabangs_id)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+
+        $mitras = $this->mitras->where('users_id', session()->get('users')['id'])->first();
+
+        $draw = $this->request->getVar('draw', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $start = $this->request->getVar('start', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $length = $this->request->getVar('length', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $search = $this->request->getVar('search', FILTER_SANITIZE_FULL_SPECIAL_CHARS)['value'];
+
+        if ($cabangs_id == "all") {
+            $data = $this->stok_mutasis->getDataRiwayatMutasi($start, $length, $search, $mitras['id'], null, date('Y-m-d'));
+            $recordsTotal = $this->stok_mutasis->countAllgetDataRiwayatMutasi($mitras['id'], null, date('Y-m-d'));
+            $recordsFiltered = $this->stok_mutasis->countFilteredgetDataRiwayatMutasi($search, $mitras['id'], null, date('Y-m-d'));
+        } else {
+            $data = $this->stok_mutasis->getDataRiwayatMutasi($start, $length, $search, $mitras['id'], $cabangs_id, date('Y-m-d'));
+            $recordsTotal = $this->stok_mutasis->countAllgetDataRiwayatMutasi($mitras['id'], $cabangs_id, date('Y-m-d'));
+            $recordsFiltered = $this->stok_mutasis->countFilteredgetDataRiwayatMutasi($search, $mitras['id'], $cabangs_id, date('Y-m-d'));
+        }
+
+        $response = [
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ];
+
+        return $this->response->setJSON($response);
     }
 }
