@@ -57,25 +57,35 @@ class KasirsController extends BaseController
                 ]
             ],
             'phone' => [
-                'rules' => 'required',
+                'rules' => 'required|numeric',
                 'errors' => [
                     'required' => 'No W.A Kasir Tidak Boleh Kosong',
+                    'numeric' => 'No W.A harus berupa angka'
                 ]
             ],
         ])) {
+            session()->setFlashdata('failed', 'Gagal, silahkan ulangi kembali');
+            $validation = session()->setFlashdata('errors', \Config\Services::validation()->listErrors());
             return redirect()->back()->withInput();
         }
 
         $mitras = $this->mitras->where('users_id', session()->get('users')['id'])->first();
 
+        // validasi nama kasir mitra
+        $users = $this->users->where('name', $this->request->getPost('name', FILTER_SANITIZE_FULL_SPECIAL_CHARS))->where('mitras_id', $mitras['id'])->first();
+        if ($users) {
+            session()->setFlashdata('errors', 'Nama Kasir Sudah Tersedia');
+            return redirect()->back()->withInput();
+        }
+
         //set password default
         $password = str_replace(' ', '', $mitras['name']) .  rand(2, 100);
 
         $data = [
-            'name' => $this->request->getPost('name'),
-            'email' => $this->request->getPost('email'),
-            'username' => $this->request->getPost('username'),
-            'phone' => $this->request->getPost('phone'),
+            'name' => $this->request->getPost('name', FILTER_SANITIZE_FULL_SPECIAL_CHARS),
+            'email' => $this->request->getPost('email', FILTER_SANITIZE_FULL_SPECIAL_CHARS),
+            'username' => $this->request->getPost('username', FILTER_SANITIZE_FULL_SPECIAL_CHARS),
+            'phone' => $this->request->getPost('phone', FILTER_SANITIZE_FULL_SPECIAL_CHARS),
             'password' => password_hash($password, PASSWORD_DEFAULT),
             'role' => 'kasir',
             'mitras_id' => $this->mitras->where('users_id', session()->get('users')['id'])->first()['id'],
