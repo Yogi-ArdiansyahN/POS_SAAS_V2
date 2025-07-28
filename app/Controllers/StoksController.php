@@ -180,7 +180,11 @@ class StoksController extends BaseController
                 }
             }
 
-            // dd($stok_cabang_pindah);
+            // validasi perpindahan cabang
+            if (empty($pindah_cabang_id) && in_array('perpindahan', $mutasi)) {
+                session()->setFlashdata('failed', 'Perpindahan stok harus memilih cabang tujuan.');
+                return redirect()->back()->withInput();
+            }
 
             //validasi inputan menu, quantities, dan mutasi
             if (empty($menus) || empty($quantities) || empty($mutasi)) {

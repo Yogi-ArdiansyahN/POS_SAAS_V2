@@ -77,9 +77,13 @@
                                                 </a>
                                             </div>
                                         </div>
-                                        <input id="password" type="password" class="form-control" name="password" tabindex="2" required>
+                                        <div class="input-group">
+                                            <input id="password" type="password" class="form-control" name="password" tabindex="2" required autocomplete="off">
+                                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        </div>
                                         <div class="invalid-feedback">
-                                            <!-- please fill in your password -->
                                             isi password anda
                                         </div>
                                     </div>
@@ -109,6 +113,23 @@
             </div>
         </section>
     </div>
+
+    <script>
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const passwordInput = document.querySelector('#password');
+            const icon = this.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
 
     <!-- General JS Scripts -->
     <script src="<?= base_url() ?>assets/modules/jquery.min.js"></script>
