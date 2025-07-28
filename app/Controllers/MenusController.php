@@ -62,6 +62,8 @@ class MenusController extends BaseController
                 ]
             ],
         ])) {
+            session()->setFlashdata('failed', 'Gagal, silahkan ulangi kembali');
+            $validation = session()->setFlashdata('errors', \Config\Services::validation()->listErrors());
             return redirect()->back()->withInput();
         }
 
