@@ -190,6 +190,11 @@ class KasirsController extends BaseController
         $cabangs = $this->cabangs->where('mitras_id', $mitras['id'])->where('users_id', $users['id'])->first();
         $diskons = $this->diskons->where('mitras_id', $mitras['id'])->where('is_active', 1)->where('end_date >=', date('Y-m-d'))->get()->getResultArray();
 
+        // validasi cabang mitra
+        if (empty($cabangs)) {
+            return redirect()->to('/')->with('errors', "Kasir tidak memiliki cabang. Silahkan hubungi admin untuk menempatkan cabang terlebih dahulu.");
+        }
+
         // check jika mitra belum berlangganan atau habis masa langganan
         $riwayat_langganan = $this->riwayatLangganans->where('mitras_id', $users['mitras_id'])->where('status', 'lunas')->first();
         if (!$riwayat_langganan) {
@@ -336,7 +341,22 @@ class KasirsController extends BaseController
 
         $users = session()->get('users');
         $mitras = $this->mitras->where('id', $users['mitras_id'])->first();
+
+
+        // Validate kasir's cabang
+        $cabang = $this->cabangs->where('users_id', $users['id'])->first();
+
+        if (!$cabang || !isset($cabang['id'])) {
+            return redirect()->to('/')->with('errors', "Kasir tidak memiliki cabang. Silakan hubungi admin untuk menempatkan cabang terlebih dahulu.");
+        }
+
         $cabang_id = $this->cabangs->where('users_id', $users['id'])->first()['id'];
+
+        // check jika mitra belum berlangganan atau habis masa langganan
+        $riwayat_langganan = $this->riwayatLangganans->where('mitras_id', $users['mitras_id'])->where('status', 'lunas')->first();
+        if (!$riwayat_langganan) {
+            return redirect()->to('/')->with('errors', "Mitra belum berlangganan");
+        }
 
         if (isset($_POST['filter'])) {
             $tanggal_mulai = $this->request->getPost('tanggal_mulai', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
