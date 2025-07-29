@@ -1,3 +1,26 @@
+<style>
+    .loader {
+        width: 20px;
+        padding: 4px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #ffffffff;
+        --_m:
+            conic-gradient(#0000 10%, #000),
+            linear-gradient(#000 0 0) content-box;
+        -webkit-mask: var(--_m);
+        mask: var(--_m);
+        -webkit-mask-composite: source-out;
+        mask-composite: subtract;
+        animation: l3 1s infinite linear;
+    }
+
+    @keyframes l3 {
+        to {
+            transform: rotate(1turn)
+        }
+    }
+</style>
 <div class="d-flex justify-content-center" style="font-weight: bold;">
     <h6>
         <?= $cabang_name ?>
@@ -21,8 +44,12 @@
         <div class="pb-1" id="menus">
         </div>
         <div class="d-flex justify-content-center">
-            <button type="submit" id="btn-submit" name="mutasi" class="btn btn-primary">Submit</button>
+            <button type="submit" id="btn-submit" name="mutasi" class="btn btn-primary" onclick="is_click()">Submit</button>
+            <button type="submit" id="btn-submit-loader" name="mutasi" class="btn btn-primary d-none" onclick="is_click()">
+                <div class="loader"></div>
+            </button>
         </div>
+
     </form>
 </div>
 
@@ -141,5 +168,16 @@
         } else {
             document.getElementById(`mutasi_perpindahan_${uid}`).classList.add('d-none');
         }
+    }
+
+    function is_click() {
+        // Sembunyikan tombol utama
+        document.getElementById("btn-submit").classList.add("d-none");
+
+        // Tampilkan tombol loader
+        document.getElementById("btn-submit-loader").classList.remove("d-none");
+
+        // Submit form secara manual jika perlu
+        // document.forms[0].submit(); // Uncomment jika tidak otomatis submit
     }
 </script>

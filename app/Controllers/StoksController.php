@@ -193,12 +193,12 @@ class StoksController extends BaseController
                 foreach ($menus as $key => $datas) {
                     $pindah_cabang_name[$key]['menus_id'] = $datas;
                 }
-            }
 
-            // validasi perpindahan cabang
-            if (empty($pindah_cabang_id) && in_array('perpindahan', $mutasi)) {
-                session()->setFlashdata('failed', 'Perpindahan stok harus memilih cabang tujuan.');
-                return redirect()->back()->withInput();
+                // validasi perpindahan cabang
+                if (empty($pindah_cabang_id) && in_array('perpindahan', $mutasi)) {
+                    session()->setFlashdata('failed', 'Perpindahan stok harus memilih cabang tujuan.');
+                    return redirect()->back()->withInput();
+                }
             }
 
             //validasi inputan menu, quantities, dan mutasi

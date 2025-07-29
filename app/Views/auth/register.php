@@ -111,7 +111,7 @@
                                         </div>
                                     </div>
                                     <!-- <div class="d-flex justify-content-end"> -->
-                                    <div class="col-3 mx-auto">
+                                    <div class="col-6 col-lg-3 mx-auto">
                                         <button name="daftar" class="btn btn-primary btn-lg btn-block">
                                             Daftar
                                         </button>
