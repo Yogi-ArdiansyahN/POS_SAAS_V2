@@ -50,7 +50,8 @@ class Filters extends BaseConfig
                     'forgotpassword',
                     'mitra/stok/mutasi',
                     'mitra/laporan/filter',
-                    'kasir/laporan'
+                    'kasir/laporan',
+                    ''
                 ]
             ],
             // 'invalidchars',
