@@ -97,7 +97,13 @@
                     </div>
                     <div class="mb-3">
                         <label for="voucherCode" class="form-label">Kode Voucher</label>
-                        <input type="text" class="form-control" id="voucherCode" placeholder="Masukkan kode voucher">
+                        <!-- <input type="text" class="form-control" id="voucherCode" placeholder="Masukkan kode voucher"> -->
+                        <select class="form-select" id="voucherCode">
+                            <option value="cash">Pilih Diskon</option>
+                            <?php foreach ($diskon as $data) : ?>
+                                <option value="<?= $data['kode'] ?>"><?= $data['name'] . ' | ' . $data['kode'] . ' | Rp ' . number_format($data['value']) ?></option>
+                            <?php endforeach ?>
+                        </select>
                         <div id="voucherFeedback" class="form-text text-danger"></div>
                     </div>
 
@@ -135,516 +141,6 @@
 
 
 <script>
-    // $(document).ready(function() {
-    //     // product data
-    //     const products = <?= $menus ?>;
-    //     const diskons = <?= $diskons ?>;
-    //     const pajak = 10 % ; // Pajak 10%
-
-    //     // Cart array to store selected items
-    //     let cart = [];
-
-    //     let appliedDiscount = null;
-
-    //     // Display all products initially
-    //     displayProducts("all");
-
-    //     // Category filter click handler
-    //     $(".category-btn").click(function() {
-    //         $(".category-btn").removeClass("active");
-    //         $(this).addClass("active");
-    //         const category = $(this).data("category");
-    //         displayProducts(category);
-    //     });
-
-    //     // Search product functionality
-    //     $("#searchProduct").on("input", function() {
-    //         const searchTerm = $(this).val().toLowerCase();
-    //         const activeCategory = $(".category-btn.active").data("category");
-
-    //         if (searchTerm === "") {
-    //             displayProducts(activeCategory);
-    //             return;
-    //         }
-
-    //         const filteredProducts = products.filter(product => {
-    //             if (activeCategory !== "all" && product.category !== activeCategory) {
-    //                 return false;
-    //             }
-    //             return product.name.toLowerCase().includes(searchTerm);
-    //         });
-
-    //         renderProducts(filteredProducts);
-    //     });
-
-    //     // Function to display products based on category
-    //     function displayProducts(category) {
-    //         let filteredProducts;
-
-    //         if (category === "all") {
-    //             filteredProducts = products;
-    //         } else {
-    //             filteredProducts = products.filter(product => product.category === category);
-    //         }
-
-    //         renderProducts(filteredProducts);
-    //     }
-
-    //     function renderProducts(productsToRender) {
-    //         const productsContainer = $("#productsContainer");
-    //         productsContainer.empty();
-
-    //         productsToRender.forEach(product => {
-    //             const isDisabled = product.current_quantity <= 0 ? 'pointer-events-none opacity-50' : '';
-
-    //             const productCard = `
-    //                 <div class="col-lg-3 col-md-4 col-6 mb-3">
-    //                     <div class="card product-card ${isDisabled}" data-id="${product.id}" data-quantity="${product.current_quantity}">
-    //                         <img src="${product.image}" class="card-img-top product-img" alt="${product.name}">
-    //                         <div class="card-body p-2">
-    //                             <h6 class="card-title">${product.name}</h6>
-    //                             <p class="card-text text-${product.current_quantity > 0 ? 'success' : 'danger'} mb-0">Stok ${product.current_quantity}</p>
-    //                             <p class="card-text text-primary mb-0">Rp ${formatNumber(product.price)}</p>
-    //                         </div>
-    //                     </div>
-    //                 </div>
-    //             `;
-
-    //             productsContainer.append(productCard);
-    //         });
-
-    //         // Click event for product cards with quantity > 0
-    //         $(".product-card").click(function() {
-    //             const quantity = $(this).data("quantity");
-    //             if (quantity > 0) {
-    //                 const productId = $(this).data("id");
-    //                 addToCart(productId);
-    //             }
-    //         });
-    //     }
-
-    //     function addToCart(productId) {
-    //         const product = products.find(p => p.id === productId);
-
-    //         if (!product) return;
-
-    //         // Cek apakah produk sudah ada di cart
-    //         const existingItem = cart.find(item => item.id === productId);
-
-    //         if (existingItem) {
-    //             // Cek apakah jumlah di cart sudah mencapai stok
-    //             if (existingItem.quantity >= product.current_quantity) {
-    //                 // alert(`Stok ${product.name} hanya tersedia ${product.current_quantity}`);
-    //                 Swal.fire({
-    //                     position: "top-center",
-    //                     icon: "info",
-    //                     title: `Stok ${product.name} hanya tersedia ${product.current_quantity}`,
-    //                     showConfirmButton: false,
-    //                     timer: 1500
-    //                 });
-    //                 return;
-    //             }
-
-    //             existingItem.quantity += 1;
-    //             existingItem.total = existingItem.price * existingItem.quantity;
-    //         } else {
-    //             if (product.current_quantity < 1) {
-    //                 alert(`${product.name} sedang habis stok`);
-    //                 return;
-    //             }
-
-    //             cart.push({
-    //                 id: product.id,
-    //                 name: product.name,
-    //                 price: product.price,
-    //                 quantity: 1,
-    //                 total: product.price
-    //             });
-    //         }
-
-    //         updateCart();
-    //     }
-
-    //     // Function to update cart display
-    //     function updateCart() {
-    //         const cartContainer = $("#cartItems");
-    //         cartContainer.empty();
-
-    //         let subtotal = 0;
-
-    //         cart.forEach(item => {
-    //             subtotal += item.total;
-
-    //             const cartItem = `
-    //             <tr>
-    //                 <td>${item.name}</td>
-    //                 <td>
-    //                     <div class="d-flex align-items-center">
-    //                         <button class="btn btn-sm btn-outline-secondary qty-btn minus-btn" data-id="${item.id}">-</button>
-    //                         <input type="text" class="form-control mx-1 cart-item-qty" value="${item.quantity}" readonly>
-    //                         <button class="btn btn-sm btn-outline-secondary qty-btn plus-btn" data-id="${item.id}">+</button>
-    //                     </div>
-    //                 </td>
-    //                 <td>Rp ${formatNumber(item.price)}</td>
-    //                 <td>Rp ${formatNumber(item.total)}</td>
-    //                 <td>
-    //                     <button class="btn btn-sm btn-outline-danger remove-item" data-id="${item.id}">
-    //                         <i class="bi bi-x"></i>
-    //                     </button>
-    //                 </td>
-    //             </tr>
-    //         `;
-
-    //             cartContainer.append(cartItem);
-    //         });
-
-    //         // Add event listeners for quantity buttons
-    //         $(".minus-btn").click(function() {
-    //             const itemId = $(this).data("id");
-    //             decreaseQuantity(itemId);
-    //         });
-
-    //         $(".plus-btn").click(function() {
-    //             const itemId = $(this).data("id");
-    //             increaseQuantity(itemId);
-    //         });
-
-    //         $(".remove-item").click(function() {
-    //             const itemId = $(this).data("id");
-    //             removeItem(itemId);
-    //         });
-
-    //         // Calculate and display total
-    //         let discount = 0;
-
-    //         if (appliedDiscount) {
-    //             if (appliedDiscount.type === 'nominal') {
-    //                 discount = appliedDiscount.value;
-    //             } else if (appliedDiscount.type === 'persen') {
-    //                 discount = subtotal * (appliedDiscount.value / 100);
-    //             }
-    //         }
-
-    //         const total = subtotal - discount;
-
-    //         $("#subtotal").text(`Rp ${formatNumber(subtotal)}`);
-    //         if (discount > 0) {
-    //             // $("#subtotal").append(`<br><small class="text-success">Diskon: -Rp ${formatNumber(discount)}</small>`);
-    //             $("#diskon").text(`-Rp ${formatNumber(discount)}`);
-    //         } else {
-    //             $("#diskon").text(`0`);
-    //         }
-    //         $("#total").text(`Rp ${formatNumber(total)}`);
-
-
-    //         // Update change calculation if amount paid is entered
-    //         calculateChange();
-    //     }
-
-    //     // Function to increase item quantity
-    //     function increaseQuantity(itemId) {
-    //         const item = cart.find(item => item.id === itemId);
-    //         const product = products.find(p => p.id === itemId);
-
-    //         if (!item || !product) return;
-
-    //         if (item.quantity >= product.current_quantity) {
-    //             // alert(`Stok ${product.name} hanya tersedia ${product.current_quantity}`);
-    //             Swal.fire({
-    //                 position: "top-center",
-    //                 icon: "info",
-    //                 title: `Stok ${product.name} hanya tersedia ${product.current_quantity}`,
-    //                 showConfirmButton: false,
-    //                 timer: 1500
-    //             });
-    //             return;
-    //         }
-
-    //         item.quantity += 1;
-    //         item.total = item.price * item.quantity;
-    //         updateCart();
-    //     }
-
-    //     // Function to decrease item quantity
-    //     function decreaseQuantity(itemId) {
-    //         const item = cart.find(item => item.id === itemId);
-
-    //         if (item.quantity > 1) {
-    //             item.quantity -= 1;
-    //             item.total = item.price * item.quantity;
-    //         } else {
-    //             removeItem(itemId);
-    //         }
-
-    //         updateCart();
-    //     }
-
-    //     // Function to remove item from cart
-    //     function removeItem(itemId) {
-    //         cart = cart.filter(item => item.id !== itemId);
-    //         updateCart();
-    //     }
-
-    //     // Function to clear cart
-    //     $("#clearCart").click(function() {
-    //         cart = [];
-    //         updateCart();
-    //     });
-
-    //     // Payment method change handler
-    //     $("#paymentMethod").change(function() {
-    //         const method = $(this).val();
-
-    //         if (method === "cash") {
-    //             $("#cashPaymentSection").show();
-    //         } else {
-    //             $("#cashPaymentSection").hide();
-    //         }
-    //     });
-
-    //     // Amount paid input handler
-    //     $("#amountPaid").on("input", function() {
-    //         calculateChange();
-    //     });
-
-    //     $("#voucherCode").on("input", function() {
-    //         const code = $(this).val().trim().toUpperCase();
-    //         const match = diskons.find(d => d.kode.toUpperCase() === code);
-
-    //         if (match) {
-    //             appliedDiscount = match;
-    //             $("#voucherFeedback").text(`Diskon diterapkan: ${match.type === 'nominal' ? 'Rp ' + formatNumber(match.value) : match.value + '%'} (${match.kode})`).removeClass("text-danger").addClass("text-success");
-    //         } else {
-    //             appliedDiscount = null;
-    //             $("#voucherFeedback").text("Kode voucher tidak ditemukan").removeClass("text-success").addClass("text-danger");
-    //         }
-
-    //         updateCart();
-    //     });
-
-    //     // Function to calculate change
-    //     function calculateChange() {
-    //         const totalAmount = parseFloat($("#total").text().replace("Rp ", "").replace(/,/g, ""));
-    //         const amountPaid = parseFloat($("#amountPaid").val()) || 0;
-
-    //         const change = amountPaid - totalAmount;
-
-    //         if (change >= 0) {
-    //             $("#change").val(formatNumber(change));
-    //         } else {
-    //             $("#change").val("Tidak Cukup.");
-    //         }
-    //     }
-
-    //     // Process payment button handler
-    //     $("#processPayment").click(function() {
-    //         if (cart.length === 0) {
-    //             // alert("Cart is empty. Please add items to proceed.");
-    //             // alert("Keranjang kosong. Silakan tambahkan item untuk melanjutkan.");
-    //             Swal.fire({
-    //                 position: "top-center",
-    //                 icon: "info",
-    //                 title: "Keranjang kosong. Silakan tambahkan item untuk melanjutkan.",
-    //                 showConfirmButton: false,
-    //                 timer: 1500
-    //             });
-    //             return;
-    //         }
-
-    //         const paymentMethod = $("#paymentMethod").val();
-
-    //         if (paymentMethod === "cash") {
-    //             const amountPaid = parseFloat($("#amountPaid").val()) || 0;
-    //             const totalAmount = parseFloat($("#total").text().replace("Rp ", "").replace(/,/g, ""));
-
-    //             if (amountPaid < totalAmount) {
-    //                 // alert("Insufficient amount paid.");
-    //                 // alert("Jumlah yang dibayarkan tidak mencukupi.");
-    //                 Swal.fire({
-    //                     position: "top-center",
-    //                     icon: "info",
-    //                     title: "Jumlah yang dibayarkan tidak mencukupi.",
-    //                     showConfirmButton: false,
-    //                     timer: 1500
-    //                 });
-    //                 return;
-    //             }
-    //         }
-
-    //         $.ajax({
-    //             url: '<?= base_url('mitra/transaksi/create'); ?>',
-    //             type: 'GET',
-    //             data: {
-    //                 cart: cart,
-    //                 diskon: appliedDiscount && appliedDiscount.kode ? appliedDiscount.kode : null
-    //             },
-    //             success: function(response) {
-    //                 if (response.status === "success") {
-    //                     // Generate receipt
-    //                     generateReceipt(response.order);
-
-    //                     // Show receipt modal
-    //                     const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'), {
-    //                         backdrop: 'static', // klik di luar modal tidak menutup
-    //                         keyboard: false // tombol ESC tidak menutup
-    //                     });
-    //                     receiptModal.show();
-
-    //                     // Clear cart after successful payment
-    //                     cart = [];
-    //                     updateCart();
-    //                     $("#amountPaid").val("");
-    //                     $("#change").val("");
-
-    //                     document.getElementById('btnCloseReceiptModal').addEventListener('click', function() {
-    //                         location.reload(); // refresh halaman saat tombol close ditekan
-    //                     });
-    //                 } else {
-
-    //                 }
-    //             },
-    //             error: function() {
-    //                 console.log('Error');
-    //             }
-    //         });
-    //     });
-
-    //     // Function to generate receipt
-    //     function generateReceipt(order) {
-    //         const receiptContent = $("#receiptContent");
-    //         const date = new Date();
-    //         const transactionId = order;
-
-    //         let subtotal = 0;
-    //         cart.forEach(item => {
-    //             subtotal += item.total;
-    //         });
-
-    //         let discount = 0;
-
-    //         if (appliedDiscount) {
-    //             if (appliedDiscount.type === 'nominal') {
-    //                 discount = appliedDiscount.value;
-    //             } else if (appliedDiscount.type === 'persen') {
-    //                 discount = subtotal * (appliedDiscount.value / 100);
-    //             }
-    //         }
-
-    //         const total = subtotal - discount;
-
-    //         const paymentMethod = $("#paymentMethod").val();
-
-    //         let receiptHTML = `
-    //         <div class="receipt-header">
-    //             <h4>POS SYSTEM</h4>
-    //             <p>Kuintansi Transaksi</p>
-    //             <p>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</p>
-    //             <p>Transaksi ID: ${transactionId}</p>
-    //         </div>
-    //         <div class="receipt-items">
-    //             <div class="receipt-item">
-    //                 <span><strong>Item</strong></span>
-    //                 <span><strong>Jumlah</strong></span>
-    //                 <span><strong>Harga</strong></span>
-    //                 <span><strong>Total</strong></span>
-    //             </div>
-    //             <hr>
-    //     `;
-
-    //         cart.forEach(item => {
-    //             receiptHTML += `
-    //             <div class="receipt-item">
-    //                 <span>${item.name}</span>
-    //                 <span>${item.quantity}</span>
-    //                 <span>Rp ${formatNumber(item.price)}</span>
-    //                 <span>Rp ${formatNumber(item.total)}</span>
-    //             </div>
-    //         `;
-    //         });
-
-    //         receiptHTML += `
-    //         <hr>
-    //         <div class="receipt-item">
-    //             <span>Subtotal:</span>
-    //             <span></span>
-    //             <span></span>
-    //             <span>Rp ${formatNumber(subtotal)}</span>
-    //         </div>
-    //         ${discount > 0 ? `
-    //             <div class="receipt-item">
-    //                 <span>Diskon (${appliedDiscount.kode} - ${appliedDiscount.type === 'persen' ? appliedDiscount.value + '%' : 'Rp ' + formatNumber(appliedDiscount.value)})</span>
-    //                 <span></span>
-    //                 <span></span>
-    //                 <span>- Rp ${formatNumber(discount)}</span>
-    //             </div>
-    //         ` : ''}
-
-    //         <div class="receipt-item receipt-total">
-    //             <span>Total:</span>
-    //             <span></span>
-    //             <span></span>
-    //             <span>Rp ${formatNumber(total)}</span>
-    //         </div>
-    //     `;
-
-    //         if (paymentMethod === "cash") {
-    //             const amountPaid = parseFloat($("#amountPaid").val()) || 0;
-    //             const change = amountPaid - total;
-
-    //             receiptHTML += `
-    //             <div class="receipt-item">
-    //                 <span>Jumlah yang Dibayar : </span>
-    //                 <span></span>
-    //                 <span></span>
-    //                 <span>Rp ${formatNumber(amountPaid)}</span>
-    //             </div>
-    //             <div class="receipt-item">
-    //                 <span>Kembalian :</span>
-    //                 <span></span>
-    //                 <span></span>
-    //                 <span>Rp ${formatNumber(change)}</span>
-    //             </div>
-    //         `;
-    //         }
-
-    //         receiptHTML += `
-    //         <hr>
-    //         <div class="receipt-item">
-    //             <span>Metode Pembayaran : </span>
-    //             <span></span>
-    //             <span></span>
-    //             <span>${paymentMethod.toUpperCase()}</span>
-    //         </div>
-    //         <div class="text-center mt-3">
-    //             <p>Terimakasih.</p>
-    //         </div>
-    //     `;
-
-    //         receiptContent.html(receiptHTML);
-    //     }
-
-    //     // Print receipt button handler
-    //     $("#printReceipt").click(function() {
-    //         const receiptContent = document.getElementById("receiptContent").innerHTML;
-    //         const printWindow = window.open('', '', 'height=600,width=800');
-
-    //         printWindow.document.write('<html><head><title>Receipt</title>');
-    //         printWindow.document.write('<style>body { font-family: "Courier New", Courier, monospace; font-size: 12px; }</style>');
-    //         printWindow.document.write('</head><body>');
-    //         printWindow.document.write(receiptContent);
-    //         printWindow.document.write('</body></html>');
-
-    //         printWindow.document.close();
-    //         printWindow.focus();
-    //         printWindow.print();
-    //         printWindow.close();
-    //     });
-
-    //     // Helper function to format numbers with commas
-    //     function formatNumber(number) {
-    //         return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    //     }
-    // });
     $(document).ready(function() {
         const products = <?= $menus ?>;
         const diskons = <?= $diskons ?>;
@@ -806,6 +302,17 @@
                     subtotal * (appliedDiscount.value / 100);
             }
 
+            if (subtotal < discount) {
+                discount = 0;
+                let voucherName = $("#voucherCode option:selected").text();
+                $("#voucherCode").val(""); // reset input
+                $("#voucherFeedback")
+                    .text(`Nominal voucher ${voucherName} lebih besar dari total pembayaran`)
+                    .removeClass("text-success")
+                    .addClass("text-danger");
+                appliedDiscount = null;
+            }
+
             const dpp = subtotal - discount;
             const pajakValue = dpp * (pajak / 100);
             const total = dpp + pajakValue;
@@ -869,7 +376,20 @@
             calculateChange();
         });
 
-        $("#voucherCode").on("input", function() {
+        // $("#voucherCode").on("input", function() {
+        //     const code = $(this).val().trim().toUpperCase();
+        //     const match = diskons.find(d => d.kode.toUpperCase() === code);
+        //     if (match) {
+        //         appliedDiscount = match;
+        //         $("#voucherFeedback").text(`Diskon diterapkan: ${match.type === 'nominal' ? 'Rp ' + formatNumber(match.value) : match.value + '%'} (${match.kode})`).removeClass("text-danger").addClass("text-success");
+        //     } else {
+        //         appliedDiscount = null;
+        //         $("#voucherFeedback").text("Kode voucher tidak ditemukan").removeClass("text-success").addClass("text-danger");
+        //     }
+        //     updateCart();
+        // });
+
+        $("#voucherCode").on("click", function() {
             const code = $(this).val().trim().toUpperCase();
             const match = diskons.find(d => d.kode.toUpperCase() === code);
             if (match) {

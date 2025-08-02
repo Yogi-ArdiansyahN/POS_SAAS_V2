@@ -72,6 +72,10 @@
                         <span>Diskon :</span>
                         <span id="diskon">Rp 0</span>
                     </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>PPN (10%) :</span>
+                        <span id="pajak">Rp 0</span>
+                    </div>
                     <div class="d-flex justify-content-between fw-bold">
                         <span>Total:</span>
                         <span id="total">Rp 0</span>
@@ -125,24 +129,22 @@
     </div>
 </div>
 
+<iframe id="pdfIframe" style="display:none;"></iframe>
 
 <?= $this->include('kasir/layouts/footer') ?>
 
+
 <script>
     $(document).ready(function() {
-        // product data
         const products = <?= $menus ?>;
         const diskons = <?= $diskons ?>;
+        const pajak = 10; // Pajak 10%
 
-        // Cart array to store selected items
         let cart = [];
-
         let appliedDiscount = null;
 
-        // Display all products initially
         displayProducts("all");
 
-        // Category filter click handler
         $(".category-btn").click(function() {
             $(".category-btn").removeClass("active");
             $(this).addClass("active");
@@ -150,15 +152,9 @@
             displayProducts(category);
         });
 
-        // Search product functionality
         $("#searchProduct").on("input", function() {
             const searchTerm = $(this).val().toLowerCase();
             const activeCategory = $(".category-btn.active").data("category");
-
-            if (searchTerm === "") {
-                displayProducts(activeCategory);
-                return;
-            }
 
             const filteredProducts = products.filter(product => {
                 if (activeCategory !== "all" && product.category !== activeCategory) {
@@ -170,15 +166,10 @@
             renderProducts(filteredProducts);
         });
 
-        // Function to display products based on category
         function displayProducts(category) {
-            let filteredProducts;
-
-            if (category === "all") {
-                filteredProducts = products;
-            } else {
-                filteredProducts = products.filter(product => product.category === category);
-            }
+            const filteredProducts = category === "all" ?
+                products :
+                products.filter(product => product.category === category);
 
             renderProducts(filteredProducts);
         }
@@ -191,22 +182,21 @@
                 const isDisabled = product.current_quantity <= 0 ? 'pointer-events-none opacity-50' : '';
 
                 const productCard = `
-                    <div class="col-lg-3 col-md-4 col-6 mb-3">
-                        <div class="card product-card ${isDisabled}" data-id="${product.id}" data-quantity="${product.current_quantity}">
-                            <img src="${product.image}" class="card-img-top product-img" alt="${product.name}">
-                            <div class="card-body p-2">
-                                <h6 class="card-title">${product.name}</h6>
-                                <p class="card-text text-${product.current_quantity > 0 ? 'success' : 'danger'} mb-0">Stok ${product.current_quantity}</p>
-                                <p class="card-text text-primary mb-0">Rp ${formatNumber(product.price)}</p>
-                            </div>
+                <div class="col-lg-3 col-md-4 col-6 mb-3">
+                    <div class="card product-card ${isDisabled}" data-id="${product.id}" data-quantity="${product.current_quantity}">
+                        <img src="${product.image}" class="card-img-top product-img" alt="${product.name}">
+                        <div class="card-body p-2">
+                            <h6 class="card-title">${product.name}</h6>
+                            <p class="card-text text-${product.current_quantity > 0 ? 'success' : 'danger'} mb-0">Stok ${product.current_quantity}</p>
+                            <p class="card-text text-primary mb-0">Rp ${formatNumber(product.price)}</p>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
 
                 productsContainer.append(productCard);
             });
 
-            // Click event for product cards with quantity > 0
             $(".product-card").click(function() {
                 const quantity = $(this).data("quantity");
                 if (quantity > 0) {
@@ -218,16 +208,11 @@
 
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
-
             if (!product) return;
 
-            // Cek apakah produk sudah ada di cart
             const existingItem = cart.find(item => item.id === productId);
-
             if (existingItem) {
-                // Cek apakah jumlah di cart sudah mencapai stok
                 if (existingItem.quantity >= product.current_quantity) {
-                    // alert(`Stok ${product.name} hanya tersedia ${product.current_quantity}`);
                     Swal.fire({
                         position: "top-center",
                         icon: "info",
@@ -258,8 +243,6 @@
             updateCart();
         }
 
-
-        // Function to update cart display
         function updateCart() {
             const cartContainer = $("#cartItems");
             cartContainer.empty();
@@ -268,7 +251,6 @@
 
             cart.forEach(item => {
                 subtotal += item.total;
-
                 const cartItem = `
                 <tr>
                     <td>${item.name}</td>
@@ -288,11 +270,9 @@
                     </td>
                 </tr>
             `;
-
                 cartContainer.append(cartItem);
             });
 
-            // Add event listeners for quantity buttons
             $(".minus-btn").click(function() {
                 const itemId = $(this).data("id");
                 decreaseQuantity(itemId);
@@ -308,49 +288,32 @@
                 removeItem(itemId);
             });
 
-            // Calculate and display totals
-            // const tax = subtotal * 0.1;
-            // const total = subtotal + tax;
-            // const total = subtotal;
+            // === Pajak dan Diskon ===
             let discount = 0;
-
             if (appliedDiscount) {
-                if (appliedDiscount.type === 'nominal') {
-                    discount = appliedDiscount.value;
-                } else if (appliedDiscount.type === 'persen') {
-                    discount = subtotal * (appliedDiscount.value / 100);
-                }
+                discount = appliedDiscount.type === 'nominal' ?
+                    appliedDiscount.value :
+                    subtotal * (appliedDiscount.value / 100);
             }
 
-            const total = subtotal - discount;
+            const dpp = subtotal - discount;
+            const pajakValue = dpp * (pajak / 100);
+            const total = dpp + pajakValue;
 
             $("#subtotal").text(`Rp ${formatNumber(subtotal)}`);
-            if (discount > 0) {
-                // $("#subtotal").append(`<br><small class="text-success">Diskon: -Rp ${formatNumber(discount)}</small>`);
-                $("#diskon").text(`-Rp ${formatNumber(discount)}`);
-            } else {
-                $("#diskon").text(`0`);
-            }
+            $("#diskon").text(discount > 0 ? `-Rp ${formatNumber(discount)}` : `0`);
+            $("#pajak").text(`Rp ${formatNumber(pajakValue)}`);
             $("#total").text(`Rp ${formatNumber(total)}`);
 
-
-            // $("#subtotal").text(`Rp ${formatNumber(subtotal)}`);
-            // // $("#tax").text(`Rp ${formatNumber(tax)}`);
-            // $("#total").text(`Rp ${formatNumber(total)}`);
-
-            // Update change calculation if amount paid is entered
             calculateChange();
         }
 
-        // Function to increase item quantity
         function increaseQuantity(itemId) {
             const item = cart.find(item => item.id === itemId);
             const product = products.find(p => p.id === itemId);
-
             if (!item || !product) return;
 
             if (item.quantity >= product.current_quantity) {
-                // alert(`Stok ${product.name} hanya tersedia ${product.current_quantity}`);
                 Swal.fire({
                     position: "top-center",
                     icon: "info",
@@ -366,44 +329,32 @@
             updateCart();
         }
 
-        // Function to decrease item quantity
         function decreaseQuantity(itemId) {
             const item = cart.find(item => item.id === itemId);
-
             if (item.quantity > 1) {
                 item.quantity -= 1;
                 item.total = item.price * item.quantity;
             } else {
                 removeItem(itemId);
             }
-
             updateCart();
         }
 
-        // Function to remove item from cart
         function removeItem(itemId) {
             cart = cart.filter(item => item.id !== itemId);
             updateCart();
         }
 
-        // Function to clear cart
         $("#clearCart").click(function() {
             cart = [];
             updateCart();
         });
 
-        // Payment method change handler
         $("#paymentMethod").change(function() {
             const method = $(this).val();
-
-            if (method === "cash") {
-                $("#cashPaymentSection").show();
-            } else {
-                $("#cashPaymentSection").hide();
-            }
+            $("#cashPaymentSection").toggle(method === "cash");
         });
 
-        // Amount paid input handler
         $("#amountPaid").on("input", function() {
             calculateChange();
         });
@@ -411,7 +362,6 @@
         $("#voucherCode").on("input", function() {
             const code = $(this).val().trim().toUpperCase();
             const match = diskons.find(d => d.kode.toUpperCase() === code);
-
             if (match) {
                 appliedDiscount = match;
                 $("#voucherFeedback").text(`Diskon diterapkan: ${match.type === 'nominal' ? 'Rp ' + formatNumber(match.value) : match.value + '%'} (${match.kode})`).removeClass("text-danger").addClass("text-success");
@@ -419,31 +369,18 @@
                 appliedDiscount = null;
                 $("#voucherFeedback").text("Kode voucher tidak ditemukan").removeClass("text-success").addClass("text-danger");
             }
-
             updateCart();
         });
 
-
-        // Function to calculate change
         function calculateChange() {
             const totalAmount = parseFloat($("#total").text().replace("Rp ", "").replace(/,/g, ""));
             const amountPaid = parseFloat($("#amountPaid").val()) || 0;
-
             const change = amountPaid - totalAmount;
-
-            if (change >= 0) {
-                $("#change").val(formatNumber(change));
-            } else {
-                // $("#change").val("Insufficient");
-                $("#change").val("Tidak Cukup.");
-            }
+            $("#change").val(change >= 0 ? formatNumber(change) : "Tidak Cukup.");
         }
 
-        // Process payment button handler
         $("#processPayment").click(function() {
             if (cart.length === 0) {
-                // alert("Cart is empty. Please add items to proceed.");
-                // alert("Keranjang kosong. Silakan tambahkan item untuk melanjutkan.");
                 Swal.fire({
                     position: "top-center",
                     icon: "info",
@@ -455,14 +392,10 @@
             }
 
             const paymentMethod = $("#paymentMethod").val();
-
             if (paymentMethod === "cash") {
                 const amountPaid = parseFloat($("#amountPaid").val()) || 0;
                 const totalAmount = parseFloat($("#total").text().replace("Rp ", "").replace(/,/g, ""));
-
                 if (amountPaid < totalAmount) {
-                    // alert("Insufficient amount paid.");
-                    // alert("Jumlah yang dibayarkan tidak mencukupi.");
                     Swal.fire({
                         position: "top-center",
                         icon: "info",
@@ -483,27 +416,21 @@
                 },
                 success: function(response) {
                     if (response.status === "success") {
-                        // Generate receipt
                         generateReceipt(response.order);
-
-                        // Show receipt modal
                         const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'), {
-                            backdrop: 'static', // klik di luar modal tidak menutup
-                            keyboard: false // tombol ESC tidak menutup
+                            backdrop: 'static',
+                            keyboard: false
                         });
                         receiptModal.show();
 
-                        // Clear cart after successful payment
                         cart = [];
                         updateCart();
                         $("#amountPaid").val("");
                         $("#change").val("");
 
                         document.getElementById('btnCloseReceiptModal').addEventListener('click', function() {
-                            location.reload(); // refresh halaman saat tombol close ditekan
+                            location.reload();
                         });
-                    } else {
-
                     }
                 },
                 error: function() {
@@ -512,34 +439,27 @@
             });
         });
 
-        // Function to generate receipt
         function generateReceipt(order) {
             const receiptContent = $("#receiptContent");
             const date = new Date();
             const transactionId = order;
 
             let subtotal = 0;
-            cart.forEach(item => {
-                subtotal += item.total;
-            });
-
-            // const tax = subtotal * 0.1;
-            // const total = subtotal + tax;
-            // const total = subtotal;
+            cart.forEach(item => subtotal += item.total);
 
             let discount = 0;
-
             if (appliedDiscount) {
-                if (appliedDiscount.type === 'nominal') {
-                    discount = appliedDiscount.value;
-                } else if (appliedDiscount.type === 'persen') {
-                    discount = subtotal * (appliedDiscount.value / 100);
-                }
+                discount = appliedDiscount.type === 'nominal' ?
+                    appliedDiscount.value :
+                    subtotal * (appliedDiscount.value / 100);
             }
 
-            const total = subtotal - discount;
-
+            const dpp = subtotal - discount;
+            const pajakValue = dpp * (pajak / 100);
+            const total = dpp + pajakValue;
             const paymentMethod = $("#paymentMethod").val();
+            const amountPaid = parseFloat($("#amountPaid").val()) || 0;
+            const change = amountPaid - total;
 
             let receiptHTML = `
             <div class="receipt-header">
@@ -555,8 +475,7 @@
                     <span><strong>Harga</strong></span>
                     <span><strong>Total</strong></span>
                 </div>
-                <hr>
-        `;
+                <hr>`;
 
             cart.forEach(item => {
                 receiptHTML += `
@@ -565,89 +484,68 @@
                     <span>${item.quantity}</span>
                     <span>Rp ${formatNumber(item.price)}</span>
                     <span>Rp ${formatNumber(item.total)}</span>
-                </div>
-            `;
+                </div>`;
             });
 
             receiptHTML += `
             <hr>
             <div class="receipt-item">
-                <span>Subtotal:</span>
-                <span></span>
-                <span></span>
+                <span>Subtotal:</span><span></span><span></span>
                 <span>Rp ${formatNumber(subtotal)}</span>
             </div>
             ${discount > 0 ? `
-                <div class="receipt-item">
-                    <span>Diskon (${appliedDiscount.kode} - ${appliedDiscount.type === 'persen' ? appliedDiscount.value + '%' : 'Rp ' + formatNumber(appliedDiscount.value)})</span>
-                    <span></span>
-                    <span></span>
-                    <span>- Rp ${formatNumber(discount)}</span>
-                </div>
-            ` : ''}
-
-            <div class="receipt-item receipt-total">
-                <span>Total:</span>
-                <span></span>
-                <span></span>
-                <span>Rp ${formatNumber(total)}</span>
+            <div class="receipt-item">
+                <span>Diskon (${appliedDiscount.kode})</span><span></span><span></span>
+                <span>- Rp ${formatNumber(discount)}</span>
+            </div>` : ''}
+            <div class="receipt-item">
+                <span>Pajak (${pajak}%):</span><span></span><span></span>
+                <span>Rp ${formatNumber(pajakValue)}</span>
             </div>
-        `;
+            <div class="receipt-item receipt-total">
+                <span>Total:</span><span></span><span></span>
+                <span>Rp ${formatNumber(total)}</span>
+            </div>`;
 
             if (paymentMethod === "cash") {
-                const amountPaid = parseFloat($("#amountPaid").val()) || 0;
-                const change = amountPaid - total;
-
                 receiptHTML += `
                 <div class="receipt-item">
-                    <span>Jumlah yang Dibayar : </span>
-                    <span></span>
-                    <span></span>
+                    <span>Jumlah yang Dibayar:</span><span></span><span></span>
                     <span>Rp ${formatNumber(amountPaid)}</span>
                 </div>
                 <div class="receipt-item">
-                    <span>Kembalian :</span>
-                    <span></span>
-                    <span></span>
+                    <span>Kembalian:</span><span></span><span></span>
                     <span>Rp ${formatNumber(change)}</span>
-                </div>
-            `;
+                </div>`;
             }
 
             receiptHTML += `
             <hr>
             <div class="receipt-item">
-                <span>Metode Pembayaran : </span>
-                <span></span>
-                <span></span>
+                <span>Metode Pembayaran:</span><span></span><span></span>
                 <span>${paymentMethod.toUpperCase()}</span>
             </div>
             <div class="text-center mt-3">
                 <p>Terimakasih.</p>
-            </div>
-        `;
+            </div>`;
 
             receiptContent.html(receiptHTML);
         }
 
-        // Print receipt button handler
         $("#printReceipt").click(function() {
             const receiptContent = document.getElementById("receiptContent").innerHTML;
             const printWindow = window.open('', '', 'height=600,width=800');
-
             printWindow.document.write('<html><head><title>Receipt</title>');
             printWindow.document.write('<style>body { font-family: "Courier New", Courier, monospace; font-size: 12px; }</style>');
             printWindow.document.write('</head><body>');
             printWindow.document.write(receiptContent);
             printWindow.document.write('</body></html>');
-
             printWindow.document.close();
             printWindow.focus();
             printWindow.print();
             printWindow.close();
         });
 
-        // Helper function to format numbers with commas
         function formatNumber(number) {
             return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
@@ -655,3 +553,4 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
