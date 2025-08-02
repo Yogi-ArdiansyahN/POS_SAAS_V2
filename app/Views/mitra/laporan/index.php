@@ -78,7 +78,6 @@
                                     <th>Cabang</th>
                                     <th>
                                         Diskon
-                                        (kode)
                                     </th>
                                     <th>Total</th>
                                     <th>Total Setelah Diskon</th>
@@ -122,7 +121,7 @@
             ],
             processing: true,
             serverSide: true,
-            dom: 'Bfrtip',
+            dom: 'Blfrtip',
             buttons: [{
                     extend: 'excelHtml5',
                     className: 'btn btn-success btn-sm',
@@ -130,7 +129,7 @@
                     filename: 'Laporan_Transaksi_' + '<?= $date ?>',
                     title: 'Laporan Transaksi ' + '<?= $date ?>',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5], // Kolom yang diekspor
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7], // Kolom yang diekspor
                         format: {
                             body: function(data, row, column, node) {
                                 // Format kolom Total dan Margin jadi Rupiah (misalnya kolom 4 dan 5)
@@ -142,27 +141,285 @@
                         }
                     },
                 },
+                // {
+                //     extend: 'pdfHtml5',
+                //     className: 'btn btn-danger btn-sm',
+                //     text: '<i class="fas fa-file-pdf"></i> PDF',
+                //     orientation: 'portrait',
+                //     pageSize: 'A4',
+                //     filename: 'Laporan_Transaksi_' + '<?= $date ?>',
+                //     title: 'Laporan Transaksi ' + '<?= $date ?>',
+                //     exportOptions: {
+                //         columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                //     },
+                //     customize: function(doc) {
+                //         // Simpan tabel
+                //         const table = doc.content[1];
+
+                //         // Bungkus tabel ke dalam kolom tengah agar benar-benar center
+                //         doc.content[1] = {
+                //             columns: [{
+                //                     width: '*',
+                //                     text: ''
+                //                 },
+                //                 {
+                //                     width: 'auto',
+                //                     text: '',
+                //                     alignment: 'center',
+                //                     valign: 'middle',
+                //                     margin: [0, 0, 0, 10],
+                //                     stack: [table]
+                //                 },
+                //                 {
+                //                     width: '*',
+                //                     text: ''
+                //                 }
+                //             ]
+                //         };
+
+                //         // Lebar kolom jadi 'auto' biar tidak meluber
+                //         table.table.widths = Array(table.table.body[0].length).fill('auto');
+
+                //         // Hitung total dari kolom 5, 6, dan 7 (index 5, 6, 7)
+                //         let total5 = 0;
+                //         let total6 = 0;
+                //         let total7 = 0;
+
+                //         // Set alignment ke kanan untuk kolom Total, Total Setelah Diskon, dan Margin
+                //         table.table.body.forEach(function(row, rowIndex) {
+                //             // Lewati header (biasanya baris pertama)
+                //             if (rowIndex === 0) return;
+
+                //             [5, 6, 7].forEach(function(colIndex) {
+                //                 if (row[colIndex]) {
+                //                     // Set alignment ke kanan
+                //                     row[colIndex].alignment = 'right';
+
+                //                     // Ambil nilai (object .text atau langsung)
+                //                     let value = row[colIndex].text || row[colIndex];
+
+                //                     // Hapus karakter non angka dan titik
+                //                     value = String(value).replace(/[^0-9]/g, '');
+
+                //                     // Ubah ke number
+                //                     let number = parseInt(value);
+                //                     if (!isNaN(number)) {
+                //                         if (colIndex === 5) total5 += number;
+                //                         if (colIndex === 6) total6 += number;
+                //                         if (colIndex === 7) total7 += number;
+                //                     }
+                //                 }
+                //             });
+                //         });
+
+                //         // Format Rupiah (tanpa Rp)
+                //         const formatRupiah = val => {
+                //             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                //         };
+
+                //         // Tambahkan baris total ke body tabel
+                //         table.table.body.push([{
+                //                 text: 'Total',
+                //                 colSpan: 5,
+                //                 alignment: 'center',
+                //                 fillColor: 'black',
+                //                 color: 'white',
+                //                 bold: true
+                //             }, {}, {}, {}, {},
+                //             {
+                //                 text: formatRupiah(total5),
+                //                 alignment: 'right',
+                //                 fillColor: 'black',
+                //                 color: 'white',
+                //                 bold: true
+                //             },
+                //             {
+                //                 text: formatRupiah(total6),
+                //                 alignment: 'right',
+                //                 fillColor: 'black',
+                //                 color: 'white',
+                //                 bold: true
+                //             },
+                //             {
+                //                 text: formatRupiah(total7),
+                //                 alignment: 'right',
+                //                 fillColor: 'black',
+                //                 color: 'white',
+                //                 bold: true
+                //             }
+                //         ]);
+
+                //         doc.content.push({
+                //             absolutePosition: {
+                //                 x: 300,
+                //                 y: 700
+                //             }, // x (kanan), y (bawah) → sesuaikan bila perlu
+                //             fontSize: 10,
+                //             alignment: 'right',
+                //             text: [{
+                //                     text: '................, <?= $date ?>\n\n',
+                //                     bold: true
+                //                 },
+                //                 {
+                //                     text: 'Mengetahui,\n\n\n\n',
+                //                     bold: true
+                //                 },
+                //                 {
+                //                     text: '_______________________\n',
+                //                     bold: true
+                //                 },
+                //                 {
+                //                     text: 'Owner/Manager',
+                //                     italics: true
+                //                 }
+                //             ]
+                //         });
+                //     }
+                // }
                 {
                     extend: 'pdfHtml5',
                     className: 'btn btn-danger btn-sm',
                     text: '<i class="fas fa-file-pdf"></i> PDF',
-                    orientation: 'potrait',
+                    orientation: 'portrait',
                     pageSize: 'A4',
-                    filename: 'Laporan_Transaksi_' + '<?= $date ?>',
-                    title: 'Laporan Transaksi ' + '<?= $date ?>',
+                    filename: 'Laporan_Penjualan_harian_' + '<?= $date ?>',
+                    title: 'Laporan Penjualan Harian ' + '<?= $mitras ?>',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5], // Kolom yang diekspor
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7],
                     },
-                },
-                {
-                    extend: 'print',
-                    className: 'btn btn-dark btn-sm',
-                    text: '<i class="fas fa-print"></i> Print',
-                    filename: 'Laporan_Transaksi_' + '<?= $date ?>',
-                    title: 'Laporan Transaksi ' + '<?= $date ?>',
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5], // Kolom yang diekspor
-                    },
+                    customize: function(doc) {
+                        // Tambahkan info "Cabang" dan "Tanggal" di bawah title
+                        doc.content.splice(1, 0, {
+                            margin: [0, 0, 0, 10],
+                            text: [{
+                                    text: 'Cabang : All\n',
+                                    bold: false
+                                },
+                                {
+                                    text: 'Tanggal : <?= $date ?>\n',
+                                    bold: false
+                                }
+                            ],
+                            alignment: 'left',
+                            fontSize: 10
+                        });
+
+                        // Simpan tabel (sekarang pindah ke index 2)
+                        const table = doc.content[2];
+
+                        // Bungkus tabel ke tengah
+                        doc.content[2] = {
+                            columns: [{
+                                    width: '*',
+                                    text: ''
+                                },
+                                {
+                                    width: 'auto',
+                                    text: '',
+                                    alignment: 'center',
+                                    valign: 'middle',
+                                    margin: [0, 0, 0, 10],
+                                    stack: [table]
+                                },
+                                {
+                                    width: '*',
+                                    text: ''
+                                }
+                            ]
+                        };
+
+                        // Lebar kolom auto agar rapi
+                        table.table.widths = Array(table.table.body[0].length).fill('auto');
+
+                        // Hitung total kolom 5, 6, dan 7
+                        let total5 = 0;
+                        let total6 = 0;
+                        let total7 = 0;
+
+                        table.table.body.forEach(function(row, rowIndex) {
+                            if (rowIndex === 0) return; // skip header
+
+                            [5, 6, 7].forEach(function(colIndex) {
+                                if (row[colIndex]) {
+                                    row[colIndex].alignment = 'right';
+
+                                    let value = row[colIndex].text || row[colIndex];
+                                    value = String(value).replace(/[^0-9]/g, '');
+
+                                    let number = parseInt(value);
+                                    if (!isNaN(number)) {
+                                        if (colIndex === 5) total5 += number;
+                                        if (colIndex === 6) total6 += number;
+                                        if (colIndex === 7) total7 += number;
+                                    }
+                                }
+                            });
+                        });
+
+                        // Format angka ke rupiah
+                        const formatRupiah = val => {
+                            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        };
+
+                        // Tambahkan baris total ke bawah tabel
+                        table.table.body.push([{
+                                text: 'Total',
+                                colSpan: 5,
+                                alignment: 'center',
+                                fillColor: 'black',
+                                color: 'white',
+                                bold: true
+                            }, {}, {}, {}, {},
+                            {
+                                text: formatRupiah(total5),
+                                alignment: 'right',
+                                fillColor: 'black',
+                                color: 'white',
+                                bold: true
+                            },
+                            {
+                                text: formatRupiah(total6),
+                                alignment: 'right',
+                                fillColor: 'black',
+                                color: 'white',
+                                bold: true
+                            },
+                            {
+                                text: formatRupiah(total7),
+                                alignment: 'right',
+                                fillColor: 'black',
+                                color: 'white',
+                                bold: true
+                            }
+                        ]);
+
+                        // Tambahkan tanda tangan di bawah
+                        doc.content.push({
+                            absolutePosition: {
+                                x: 300,
+                                y: 700
+                            },
+                            fontSize: 10,
+                            alignment: 'right',
+                            text: [{
+                                    text: '................, <?= $date ?>\n\n',
+                                    bold: true
+                                },
+                                {
+                                    text: 'Mengetahui,\n\n\n\n',
+                                    bold: true
+                                },
+                                {
+                                    text: '_______________________\n',
+                                    bold: true
+                                },
+                                {
+                                    text: 'Owner/Manager',
+                                    italics: true
+                                }
+                            ]
+                        });
+                    }
                 }
             ],
             ajax: {
@@ -195,10 +452,18 @@
                     data: null,
                     className: "text-center",
                     render: function(data) {
+                        if (!data.nama_diskon) return "-";
+
+                        const diskonNama = data.nama_diskon;
+                        const diskonKode = data.kode_diskon ? `(${data.kode_diskon})` : "-";
+                        const nilaiDiskon = data.total && data.total_setelah_diskon ?
+                            formatRupiah(data.total - data.total_setelah_diskon) :
+                            "-";
+
                         return `
-                        <span> ${data.nama_diskon == null ? '-' : data.nama_diskon} </span><br>
-                        <sup> ${data.kode_diskon == null ? '-' : '(' + data.kode_diskon + ')'} </sup> <br>
-                        <sup class="text-danger">- ${data.kode_diskon == null ? '-' :  data.total - data.total_setelah_diskon} </sup>
+                            <div style="font-size: 13px;">
+                                ${diskonNama} <span class="text-muted">${diskonKode}</span>  <span class="text-danger">-${nilaiDiskon}</span>
+                            </div>
                         `;
                     }
                 },

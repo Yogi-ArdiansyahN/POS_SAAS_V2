@@ -70,7 +70,8 @@ class LaporansController extends BaseController
             'total_nominal' => $total_nominal,
             'total_margin' => $total_margin,
             'total_diskon' => $total_diskon,
-            'date' => date('Y-m-d')
+            'date' => date('Y-m-d'),
+            'mitras' => $mitras['name'],
         ];
 
         return view('mitra/laporan/index', $data);
