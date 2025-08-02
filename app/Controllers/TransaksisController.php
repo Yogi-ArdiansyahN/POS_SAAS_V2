@@ -57,14 +57,15 @@ class TransaksisController extends BaseController
                 'current_quantity' => $data['current_quantity']
             ];
         }
-
+        // dd($diskons);
         $data = [
             'title' => 'Transaksi',
             'mitra' => $mitras['name'],
             'menus' => json_encode($filtered_menus),
             'cabangs_id' => $cabangs['id'],
             'mitras_id' => $mitras['id'],
-            'diskons' => json_encode($diskons)
+            'diskons' => json_encode($diskons),
+            'diskon' => $diskons
         ];
 
         return view('mitra/transaksi/index', $data);
