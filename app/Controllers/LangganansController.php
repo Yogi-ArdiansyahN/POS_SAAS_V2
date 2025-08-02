@@ -24,9 +24,16 @@ class LangganansController extends BaseController
     {
         $langganan = $this->langganans->get()->getResultArray();
 
+        $kategori = [
+            'minggu' => 'Mingguan',
+            'bulan' => 'Bulanan',
+            'tahun' => 'Tahunan'
+        ];
+
         $data = [
             'title' => "Langganan",
-            'langganan' => $langganan
+            'langganan' => $langganan,
+            'kategori' => $kategori
         ];
 
         return view('admin/langganan/index', $data);
@@ -64,6 +71,17 @@ class LangganansController extends BaseController
         $kategori = $this->request->getPost('kategori', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $durasi = $this->request->getPost('durasi', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $harga = $this->request->getPost('harga', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+        $kategoris = [
+            'minggu',
+            'bulan',
+            'tahun'
+        ];
+
+        if (!in_array($kategori, $kategoris)) {
+            session()->setFlashdata('errors', 'Kategori tidak valid');
+            return redirect()->back();
+        }
 
         $data = [
             'name' => $name,
@@ -193,7 +211,7 @@ class LangganansController extends BaseController
         // ganti kategori indo ke inggris 
         $kategori = null;
         if ($berlangganan) {
-            $kategori = ($berlangganan['kategori'] == 'bulan') ? 'month' : 'year';
+            $kategori = ($berlangganan['kategori'] == 'bulan') ? 'month' : (($berlangganan['kategori'] == 'minggu') ? 'week' : 'year');
         }
 
         // if ada belangganan aktif/lunas
@@ -234,7 +252,7 @@ class LangganansController extends BaseController
                 'status' => $berlangganan['name'] == 'Trial' ? 'lunas' : 'belum_lunas',
                 'tanggal_mulai' => date('Y-m-d'),
                 'tanggal_selesai' => date('Y-m-d', strtotime($berlangganan['durasi'] . ' ' . $kategori)),
-                'expired_at' => date('Y-m-d', strtotime('+1 day'))
+                'expired_at' => date('Y-m-d'),
             ];
         } else {
             $data = [

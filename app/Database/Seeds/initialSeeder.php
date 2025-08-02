@@ -8,6 +8,8 @@ class initialSeeder extends Seeder
 {
     public function run()
     {
+        date_default_timezone_set('Asia/Jakarta');
+
         $db = \Config\Database::connect();
         $faker = \Faker\Factory::create('id_ID'); // Gunakan lokal Indonesia
 
@@ -63,8 +65,8 @@ class initialSeeder extends Seeder
             [
                 'name' => 'Trial',
                 'harga' => null,
-                'kategori' => 'bulan',
-                'durasi' => '2',
+                'kategori' => 'minggu',
+                'durasi' => '3',
                 'status' => 1
             ],
             [

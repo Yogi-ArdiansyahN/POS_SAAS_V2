@@ -8,6 +8,7 @@
     <div class="mb-3">
         <label for="status" class="form-label">Kategori</label>
         <select class="form-control" name="kategori" id="kategori" required oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')" autocomplete="off">
+            <option value="minggu" <?= ($langganan['kategori'] == 'minggu' ? 'selected' : '') ?>>Minggu</option>
             <option value="bulan" <?= ($langganan['kategori'] == 'bulan' ? 'selected' : '') ?>>Bulan</option>
             <option value="tahun" <?= ($langganan['kategori'] == 'tahun' ? 'selected' : '') ?>>Tahun</option>
         </select>

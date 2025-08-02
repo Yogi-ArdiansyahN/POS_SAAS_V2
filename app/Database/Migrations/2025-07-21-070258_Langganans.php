@@ -24,7 +24,7 @@ class Langganans extends Migration
             ],
             'kategori' => [
                 'type' => 'enum',
-                'constraint' => ['bulan', 'tahun'],
+                'constraint' => ['minggu', 'bulan', 'tahun'],
             ],
             'durasi' => [
                 'type' => 'int',

@@ -44,7 +44,7 @@
                                 <div>
                                     <sup> Rp </sup> <?= number_format($data['harga']) ?>
                                 </div>
-                                <div>per <?= ucfirst($data['kategori']) ?></div>
+                                <div>per <?= $data['durasi'] . ' ' . ucfirst($data['kategori']) ?></div>
                             </div>
                             <div class="pricing-details">
                                 <div class="pricing-item">
@@ -93,8 +93,9 @@
                         <label for="status" class="form-label">Kategori</label>
                         <select class="form-control" name="kategori" id="kategori" required oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')" autocomplete="off">
                             <option selected disabled>Select one</option>
-                            <option value="bulan">Bulan</option>
-                            <option value="tahun">Tahun</option>
+                            <?php foreach ($kategori as $key => $data) : ?>
+                                <option value="<?= $key ?>"><?= $data ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
